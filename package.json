@@ -1,0 +1,60 @@
+{
+  "name": "vee-validate-composition-api",
+  "version": "0.0.1",
+  "description": "Use the Vue.js composition functions API for form validation, powered by vee-validate.",
+  "module": "dist/vee-validate-fns.esm.js",
+  "unpkg": "dist/vee-validate-fns.js",
+  "main": "dist/vee-validate-fns.js",
+  "typings": "dist/types/index.d.ts",
+  "author": "Abdelrahman Awad <logaretm1@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint . '**/*.{js,jsx,ts,tsx}' --fix",
+    "build:main": "node scripts/build.js",
+    "ts:defs": "./scripts/definitions.sh",
+    "build": "npm run build:main && npm run ts:defs",
+    "cover": "jest --coverage"
+  },
+  "files": [
+    "dist/*.js",
+    "dist/locale/*.json",
+    "dist/types/**/*.d.ts"
+  ],
+  "devDependencies": {
+    "@commitlint/cli": "^8.1.0",
+    "@types/jest": "^24.0.18",
+    "@types/mkdirp": "^0.5.2",
+    "@typescript-eslint/eslint-plugin": "^2.0.0",
+    "@typescript-eslint/parser": "^2.0.0",
+    "@vue/test-utils": "^1.0.0-beta.29",
+    "eslint": "^6.2.1",
+    "eslint-config-prettier": "^6.1.0",
+    "eslint-config-standard": "^14.0.1",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jest": "^22.15.2",
+    "eslint-plugin-prettier": "^3.1.0",
+    "filesize": "^4.1.2",
+    "gzip-size": "^5.1.1",
+    "husky": "^3.0.4",
+    "jest": "^24.9.0",
+    "lint-staged": "^9.2.3",
+    "mkdirp": "^0.5.1",
+    "prettier": "^1.18.2",
+    "rollup": "^1.20.1",
+    "rollup-plugin-commonjs": "^10.0.2",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-typescript2": "^0.23.0",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3",
+    "uglify-js": "^3.6.0"
+  },
+  "dependencies": {
+    "@vue/composition-api": "^0.1.0",
+    "vee-validate": "^3.0.0",
+    "vue": "^2.6.10",
+    "vue-function-api": "^3.0.0-beta.0"
+  }
+}
