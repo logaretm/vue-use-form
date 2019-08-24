@@ -12,14 +12,26 @@ In your component file:
 
 ```js
 import { ref } from '@vue/composition-api';
-import { useValidation } from 'vee-validate-composition-api';
+import { useForm, useField } from 'vue-use-form';
 
 export default {
   setup() {
-    const input = ref('');
-    const { errors, flags } = useValidation(input, 'required');
+    const fname = ref('');
+    const { form, submit } = useForm({
+      onSubmit () {
+        console.log('Submitting!', {
+          fname: fname.value
+        });
+      }
+    });
 
-    return { input, errors };
+    const { errors } = useField('firstName', {
+      rules: 'required',
+      value: fname,
+      form
+    });
+
+    return { fname, errors, submit };
   }
 };
 ```
@@ -27,8 +39,11 @@ export default {
 In your Template:
 
 ```vue
-<input v-model="input" type="text">
-<span>{{ errors[0] }}</span>
+<form @submit.prevent="submit">
+  <input v-model="fname">
+  <span>{{ errors[0] }}</span>
+  <button>Submit</button>
+</form>
 ```
 
 ## API
