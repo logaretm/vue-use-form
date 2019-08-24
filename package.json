@@ -1,5 +1,5 @@
 {
-  "name": "vue-use-validation",
+  "name": "vue-use-form",
   "version": "0.0.1",
   "description": "Use the Vue.js composition functions API for form validation, powered by vee-validate.",
   "module": "dist/vee-validate-fns.esm.js",
@@ -54,7 +54,6 @@
   "dependencies": {
     "@vue/composition-api": "^0.1.0",
     "vee-validate": "^3.0.0",
-    "vue": "^2.6.10",
-    "vue-function-api": "^3.0.0-beta.0"
+    "vue": "^2.6.10"
   }
 }

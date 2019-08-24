@@ -5381,13 +5381,6 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-vue-function-api@^3.0.0-beta.0:
-  version "3.0.0-beta.0"
-  resolved "https://registry.yarnpkg.com/vue-function-api/-/vue-function-api-3.0.0-beta.0.tgz#647db6b5691193af73a9c21cbae6228ecc837998"
-  integrity sha512-brLRKyRJOWNdNCIK/5C89DAXVfT9V0cLm1oaUieLVovEsWmdP5NQD1GnegvfQijuzZnp1JKXxmQ9aG4IU8+bGA==
-  dependencies:
-    tslib "^1.9.3"
-
 vue@^2.6.10:
   version "2.6.10"
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.6.10.tgz#a72b1a42a4d82a721ea438d1b6bf55e66195c637"
