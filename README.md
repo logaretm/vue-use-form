@@ -1,4 +1,4 @@
-# vue-use-validation
+# vue-use-form
 
 This is a [Vue composition API](https://github.com/vuejs/composition-api) function that allows you to do form validation, powered by vee-validate.
 
