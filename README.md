@@ -4,7 +4,15 @@ This is a [Vue composition API](https://github.com/vuejs/composition-api) functi
 
 ## Install
 
-Not production ready yet, clone the repo if you need it.
+**⚠ Not production ready yet. ⚠**
+
+```sh
+yarn add vue-use-form
+
+# OR
+
+npm i vue-use-form
+```
 
 ## Usage
 
