@@ -7,7 +7,7 @@ export interface FormController {
 
 interface FormOptions {
   onSubmit: Function;
-};
+}
 
 type FlagName = 'valid' | 'invalid' | 'validated' | 'dirty' | 'pristine' | 'pending' | 'touched' | 'untouched';
 
@@ -22,30 +22,33 @@ const mergeStrategies: Record<FlagName, 'every' | 'some'> = {
   validated: 'every'
 };
 
-function computeFlags (fields: Ref<any[]>) {
+function computeFlags(fields: Ref<any[]>) {
   const flags: FlagName[] = Object.keys(mergeStrategies) as FlagName[];
 
-  return flags.reduce((acc, flag: FlagName) => {
-    acc[flag] = computed(() => {
-      return fields.value[mergeStrategies[flag]](field => field[flag]);
-    });
+  return flags.reduce(
+    (acc, flag: FlagName) => {
+      acc[flag] = computed(() => {
+        return fields.value[mergeStrategies[flag]](field => field[flag]);
+      });
 
-    return acc;
-  }, {} as Record<FlagName, Ref<boolean>>);
+      return acc;
+    },
+    {} as Record<FlagName, Ref<boolean>>
+  );
 }
 
 interface FormComposite {
   form: FormController;
   reset: () => void;
-  submit: () => Promise<any>;
+  handleSubmit: (fn: Function) => Promise<any>;
   validate: () => Promise<boolean>;
 }
 
-export function useForm (opts?: FormOptions): FormComposite {
+export function useForm(opts?: FormOptions): FormComposite {
   const fields: Ref<object[]> = ref([]);
   const fieldsById: Record<string, any> = {}; // for faster access
   const controller: FormController = {
-    _register (field) {
+    _register(field) {
       fields.value.push(field);
       fieldsById[field.vid] = field;
     },
@@ -59,9 +62,11 @@ export function useForm (opts?: FormOptions): FormComposite {
   };
 
   const validate = async () => {
-    const results = await Promise.all(fields.value.map((f: any) => {
-      return f.validate();
-    }));
+    const results = await Promise.all(
+      fields.value.map((f: any) => {
+        return f.validate();
+      })
+    );
 
     return results.every(r => r.valid);
   };
@@ -75,12 +80,12 @@ export function useForm (opts?: FormOptions): FormComposite {
     form: controller,
     validate,
     reset,
-    submit: () => {
+    handleSubmit: (fn: Function) => {
       return validate().then(result => {
         if (opts && opts.onSubmit && result) {
-          return opts.onSubmit();
+          return fn();
         }
-      })
+      });
     }
   };
-};
+}
