@@ -1,8 +1,7 @@
 import { watch, ref, reactive, Ref, isRef, toRefs, computed, onMounted } from '@vue/composition-api';
 import { validate } from 'vee-validate';
 import { ValidationFlags, ValidationResult } from 'vee-validate/dist/types/types';
-import { FormController } from './useForm';
-import { Flag } from './types';
+import { Flag, FormController } from './types';
 import { debounce, hasRefs } from './utils';
 import { DELAY } from './constants';
 
@@ -49,9 +48,9 @@ export function useField(fieldName: string, opts?: FieldAugmentedOptions) {
     flags.pending.value = false;
   }
 
-  const validateField = async (newVal: Ref<any>): Promise<ValidationResult> => {
+  const validateField = async (newVal: any): Promise<ValidationResult> => {
     flags.pending.value = true;
-    const result = await validate(newVal.value, isRef(rules) ? rules.value : rules, {
+    const result = await validate(newVal, isRef(rules) ? rules.value : rules, {
       name: fieldName,
       values: form?.valueRecords ?? {}
     });
@@ -115,7 +114,7 @@ export function useField(fieldName: string, opts?: FieldAugmentedOptions) {
 
   const field = {
     vid: fieldName,
-    value,
+    model: value,
     ...flags,
     errors,
     reset,
@@ -147,9 +146,16 @@ function normalizeOptions(opts: FieldAugmentedOptions | undefined): FieldOptions
     };
   }
 
+  if (typeof opts === 'string') {
+    return {
+      ...defaults,
+      rules: opts
+    };
+  }
+
   return {
     ...defaults,
-    rules: opts
+    ...(opts ?? {})
   };
 }
 

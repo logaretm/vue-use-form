@@ -11,3 +11,8 @@ export type Flag =
   | 'required'
   | 'passed'
   | 'failed';
+
+export interface FormController {
+  register: (field: { vid: string }) => any;
+  valueRecords: Record<string, any>;
+}
