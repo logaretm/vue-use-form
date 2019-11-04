@@ -2,9 +2,9 @@
   "name": "vue-use-form",
   "version": "0.0.1",
   "description": "Use the Vue.js composition functions API for form validation, powered by vee-validate.",
-  "module": "dist/vee-validate-fns.esm.js",
-  "unpkg": "dist/vee-validate-fns.js",
-  "main": "dist/vee-validate-fns.js",
+  "module": "dist/vue-use-form.esm.js",
+  "unpkg": "dist/vue-use-form.js",
+  "main": "dist/vue-use-form.js",
   "typings": "dist/types/index.d.ts",
   "author": "Abdelrahman Awad <logaretm1@gmail.com>",
   "license": "MIT",
@@ -14,11 +14,11 @@
     "build:main": "node scripts/build.js",
     "ts:defs": "./scripts/definitions.sh",
     "build": "npm run build:main && npm run ts:defs",
-    "cover": "jest --coverage"
+    "cover": "jest --coverage",
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist/*.js",
-    "dist/locale/*.json",
     "dist/types/**/*.d.ts"
   ],
   "devDependencies": {

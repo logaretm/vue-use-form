@@ -9,13 +9,13 @@ async function build() {
   await mkdirp(paths.dist);
   // eslint-disable-next-line
   console.log(chalk.cyan('Generating ESM builds...'));
-  await utils.writeBundle(configs.esm, 'vee-validate-fns.esm.js');
+  await utils.writeBundle(configs.esm, 'vue-use-form.esm.js');
   // eslint-disable-next-line
   console.log(chalk.cyan('Done!'));
 
   // eslint-disable-next-line
   console.log(chalk.cyan('Generating UMD build...'));
-  await utils.writeBundle(configs.umd, 'vee-validate-fns.js', true);
+  await utils.writeBundle(configs.umd, 'vue-use-form.js', true);
   // eslint-disable-next-line
   console.log(chalk.cyan('Done!'));
 }
