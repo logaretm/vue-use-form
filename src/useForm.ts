@@ -1,16 +1,14 @@
 import { computed, ref, Ref } from '@vue/composition-api';
+import { Flag } from './types';
 
 export interface FormController {
-  _register: (field: { vid: string }) => any;
-  _valueRecords: Record<string, any>;
+  register: (field: { vid: string }) => any;
+  valueRecords: Record<string, any>;
 }
 
 interface FormOptions {}
 
-type CoreFlag = 'valid' | 'invalid' | 'validated' | 'dirty' | 'pristine' | 'pending' | 'touched' | 'untouched';
-type Flag = CoreFlag | 'passed' | 'failed';
-
-const mergeStrategies: Record<CoreFlag, 'every' | 'some'> = {
+const mergeStrategies: Record<Flag, 'every' | 'some'> = {
   valid: 'every',
   invalid: 'some',
   dirty: 'some',
@@ -18,14 +16,18 @@ const mergeStrategies: Record<CoreFlag, 'every' | 'some'> = {
   touched: 'some',
   untouched: 'every',
   pending: 'some',
-  validated: 'every'
+  validated: 'every',
+  changed: 'some',
+  passed: 'every',
+  failed: 'some',
+  required: 'some'
 };
 
 function computeFlags(fields: Ref<any[]>) {
-  const flags: CoreFlag[] = Object.keys(mergeStrategies) as CoreFlag[];
+  const flags: Flag[] = Object.keys(mergeStrategies) as Flag[];
 
-  const computedFlags = flags.reduce(
-    (acc, flag: CoreFlag) => {
+  return flags.reduce(
+    (acc, flag: Flag) => {
       acc[flag] = computed(() => {
         return fields.value[mergeStrategies[flag]](field => field[flag]);
       });
@@ -34,16 +36,6 @@ function computeFlags(fields: Ref<any[]>) {
     },
     {} as Record<Flag, Ref<boolean>>
   );
-
-  computedFlags.passed = computed(() => {
-    return computedFlags.valid.value && computedFlags.validated.value;
-  });
-
-  computedFlags.failed = computed(() => {
-    return computedFlags.invalid.value && computedFlags.validated.value;
-  });
-
-  return computedFlags;
 }
 
 interface FormComposite {
@@ -57,11 +49,11 @@ export function useForm(opts?: FormOptions): FormComposite {
   const fields: Ref<object[]> = ref([]);
   const fieldsById: Record<string, any> = {}; // for faster access
   const controller: FormController = {
-    _register(field) {
+    register(field) {
       fields.value.push(field);
       fieldsById[field.vid] = field;
     },
-    get _valueRecords() {
+    get valueRecords() {
       return fields.value.reduce((acc: any, field: any) => {
         acc[field.vid] = field.value.value;
 

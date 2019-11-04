@@ -1,20 +1,10 @@
-import { watch, ref, reactive, Ref, isRef, toRefs } from '@vue/composition-api';
+import { watch, ref, reactive, Ref, isRef, toRefs, computed } from '@vue/composition-api';
 import { validate } from 'vee-validate';
 import { ValidationFlags, ValidationResult } from 'vee-validate/dist/types/types';
 import { FormController } from './useForm';
-
-const createFlags = (): ValidationFlags => ({
-  changed: false,
-  valid: false,
-  invalid: false,
-  touched: false,
-  untouched: true,
-  dirty: false,
-  pristine: true,
-  validated: false,
-  pending: false,
-  required: false
-});
+import { Flag } from './types';
+import { debounce } from './utils';
+import { DELAY } from './constants';
 
 type RuleExp = string | Record<string, any>;
 
@@ -24,80 +14,83 @@ interface FieldOptions {
   form?: FormController;
 }
 
-function defaultOpts (): FieldOptions {
+type FieldAugmentedOptions = string | Ref<any> | FieldOptions;
+
+export function useFlags() {
+  const flags: ValidationFlags = reactive(createFlags());
+  const passed = computed(() => {
+    return flags.valid && flags.validated;
+  });
+
+  const failed = computed(() => {
+    return flags.invalid && flags.validated;
+  });
+
   return {
-    value: ref(''),
-    rules: ''
+    ...toRefs(flags),
+    passed,
+    failed
   };
 }
 
-export function useField(fieldName: string, opts: string | FieldOptions = defaultOpts()) {
+export function useField(fieldName: string, opts?: FieldAugmentedOptions) {
   const errors: Ref<string[]> = ref([]);
-  const flags: ValidationFlags = reactive(createFlags());
-  let normalizedOpts: FieldOptions;
-  if (typeof opts === 'string') {
-    const defOpts = defaultOpts();
-    normalizedOpts = {
-      ...defOpts,
-      rules: opts
-    };
-  } else {
-    normalizedOpts = opts;
-  }
-
-  const { value, rules } = normalizedOpts;
+  const { value, rules, form } = normalizeOptions(opts);
   const initialValue = value.value;
+  const flags = useFlags();
 
-  const validateField = async (): Promise<ValidationResult> => {
-    flags.pending = true;
-    const result = await validate(value.value, isRef(rules) ? rules.value : rules, {
+  const validateField = async (newVal: Ref<any>): Promise<ValidationResult> => {
+    flags.pending.value = true;
+    const result = await validate(newVal.value, isRef(rules) ? rules.value : rules, {
       name: fieldName,
-      values: normalizedOpts.form && normalizedOpts.form._valueRecords
+      values: form?.valueRecords ?? {}
     });
 
     errors.value = result.errors;
-    flags.changed = initialValue !== value.value;
-    flags.valid = result.valid;
-    flags.invalid = !result.valid;
-    flags.validated = true;
-    flags.pending = false;
+    flags.changed.value = initialValue !== value.value;
+    flags.valid.value = result.valid;
+    flags.invalid.value = !result.valid;
+    flags.validated.value = true;
+    flags.pending.value = false;
 
     return result;
-  }
+  };
 
-  watch(value, () => validateField(), {
+  const handler = debounce(DELAY, validateField);
+
+  watch(value, handler, {
     lazy: true
   });
 
   if (isRef(rules)) {
-    watch(rules, () => validateField(), {
+    watch(rules as Ref<any>, handler, {
       lazy: true
     });
   }
 
   const reset = () => {
     const defaults = createFlags();
-    Object.keys(flags).forEach(key => {
-      flags[key] = defaults[key];
+    Object.keys(flags).forEach((key: string) => {
+      flags[key as Flag].value = defaults[key as Flag];
     });
 
     errors.value = [];
   };
 
   const onBlur = () => {
-    flags.touched = true;
-    flags.untouched = false;
+    flags.touched.value = true;
+    flags.untouched.value = false;
   };
 
   const onInput = () => {
-    flags.dirty = true;
-    flags.pristine = false;
-  }
+    flags.dirty.value = true;
+    flags.pristine.value = false;
+  };
 
   const field = {
     vid: fieldName,
     value,
-    ...toRefs(flags),
+    ...flags,
     errors,
     reset,
     validate: validateField,
@@ -105,9 +98,47 @@ export function useField(fieldName: string, opts: string | FieldOptions = defaul
     onBlur
   };
 
-  if (normalizedOpts.form) {
-    normalizedOpts.form._register(field);
-  }
+  form?.register(field);
 
   return field;
+}
+
+function normalizeOptions(opts: FieldAugmentedOptions | undefined): FieldOptions {
+  const defaults = {
+    value: ref(''),
+    rules: ''
+  };
+
+  if (!opts) {
+    return defaults;
+  }
+
+  if (isRef(opts)) {
+    return {
+      ...defaults,
+      rules: opts
+    };
+  }
+
+  return {
+    ...defaults,
+    rules: opts
+  };
+}
+
+function createFlags(): Record<Flag, boolean> {
+  return {
+    changed: false,
+    valid: false,
+    invalid: false,
+    touched: false,
+    untouched: true,
+    dirty: false,
+    pristine: true,
+    validated: false,
+    pending: false,
+    required: false,
+    passed: false,
+    failed: false
+  };
 }
