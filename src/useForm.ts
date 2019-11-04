@@ -48,6 +48,8 @@ export function useForm(opts?: FormOptions): FormComposite {
     register(field) {
       fields.value.push(field);
       fieldsById[field.vid] = field;
+      // TODO: Register watchers for cross field validation.
+      // Requires: vee-validate exposed normalizeRules function to map fields.
     },
     get valueRecords() {
       return fields.value.reduce((acc: any, field: any) => {
