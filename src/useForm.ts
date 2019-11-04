@@ -1,10 +1,5 @@
 import { computed, ref, Ref } from '@vue/composition-api';
-import { Flag } from './types';
-
-export interface FormController {
-  register: (field: { vid: string }) => any;
-  valueRecords: Record<string, any>;
-}
+import { Flag, FormController } from './types';
 
 interface FormOptions {}
 
@@ -40,13 +35,14 @@ function computeFlags(fields: Ref<any[]>) {
 
 interface FormComposite {
   form: FormController;
+  errors: Ref<Record<string, string[]>>;
   reset: () => void;
   handleSubmit: (fn: Function) => Promise<any>;
   validate: () => Promise<boolean>;
 }
 
 export function useForm(opts?: FormOptions): FormComposite {
-  const fields: Ref<object[]> = ref([]);
+  const fields: Ref<any[]> = ref([]);
   const fieldsById: Record<string, any> = {}; // for faster access
   const controller: FormController = {
     register(field) {
@@ -55,7 +51,7 @@ export function useForm(opts?: FormOptions): FormComposite {
     },
     get valueRecords() {
       return fields.value.reduce((acc: any, field: any) => {
-        acc[field.vid] = field.value.value;
+        acc[field.vid] = field.model.value;
 
         return acc;
       }, {});
@@ -72,11 +68,20 @@ export function useForm(opts?: FormOptions): FormComposite {
     return results.every(r => r.valid);
   };
 
+  const errors = computed(() => {
+    return fields.value.reduce((acc: Record<string, string[]>, field) => {
+      acc[field.vid] = field.errors.value;
+
+      return acc;
+    }, {});
+  });
+
   const reset = () => {
     fields.value.forEach((f: any) => f.reset());
   };
 
   return {
+    errors,
     ...computeFlags(fields),
     form: controller,
     validate,
