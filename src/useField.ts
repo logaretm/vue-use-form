@@ -1,9 +1,9 @@
-import { watch, ref, reactive, Ref, isRef, toRefs, computed } from '@vue/composition-api';
+import { watch, ref, reactive, Ref, isRef, toRefs, computed, onMounted } from '@vue/composition-api';
 import { validate } from 'vee-validate';
 import { ValidationFlags, ValidationResult } from 'vee-validate/dist/types/types';
 import { FormController } from './useForm';
 import { Flag } from './types';
-import { debounce } from './utils';
+import { debounce, hasRefs } from './utils';
 import { DELAY } from './constants';
 
 type RuleExp = string | Record<string, any>;
@@ -11,6 +11,7 @@ type RuleExp = string | Record<string, any>;
 interface FieldOptions {
   value: Ref<any>;
   rules: RuleExp | Ref<RuleExp>;
+  immediate: boolean;
   form?: FormController;
 }
 
@@ -35,9 +36,18 @@ export function useFlags() {
 
 export function useField(fieldName: string, opts?: FieldAugmentedOptions) {
   const errors: Ref<string[]> = ref([]);
-  const { value, rules, form } = normalizeOptions(opts);
+  const { value, rules, form, immediate } = normalizeOptions(opts);
   const initialValue = value.value;
   const flags = useFlags();
+
+  function commitResult(result: ValidationResult) {
+    errors.value = result.errors;
+    flags.changed.value = initialValue !== value.value;
+    flags.valid.value = result.valid;
+    flags.invalid.value = !result.valid;
+    flags.validated.value = true;
+    flags.pending.value = false;
+  }
 
   const validateField = async (newVal: Ref<any>): Promise<ValidationResult> => {
     flags.pending.value = true;
@@ -46,12 +56,7 @@ export function useField(fieldName: string, opts?: FieldAugmentedOptions) {
       values: form?.valueRecords ?? {}
     });
 
-    errors.value = result.errors;
-    flags.changed.value = initialValue !== value.value;
-    flags.valid.value = result.valid;
-    flags.invalid.value = !result.valid;
-    flags.validated.value = true;
-    flags.pending.value = false;
+    commitResult(result);
 
     return result;
   };
@@ -65,6 +70,14 @@ export function useField(fieldName: string, opts?: FieldAugmentedOptions) {
   if (isRef(rules)) {
     watch(rules as Ref<any>, handler, {
       lazy: true
+    });
+  } else if (hasRefs(rules)) {
+    Object.keys(rules).forEach(key => {
+      if (!isRef(rules[key])) {
+        return;
+      }
+
+      watch(rules[key], handler, { lazy: true });
     });
   }
 
@@ -87,6 +100,19 @@ export function useField(fieldName: string, opts?: FieldAugmentedOptions) {
     flags.pristine.value = false;
   };
 
+  onMounted(() => {
+    validate(initialValue, isRef(rules) ? rules.value : rules).then(result => {
+      if (immediate) {
+        commitResult(result);
+        return;
+      }
+
+      // Initial silent validation.
+      flags.valid.value = result.valid;
+      flags.invalid.value = !result.valid;
+    });
+  });
+
   const field = {
     vid: fieldName,
     value,
@@ -106,6 +132,7 @@ export function useField(fieldName: string, opts?: FieldAugmentedOptions) {
 function normalizeOptions(opts: FieldAugmentedOptions | undefined): FieldOptions {
   const defaults = {
     value: ref(''),
+    immediate: false,
     rules: ''
   };
 
