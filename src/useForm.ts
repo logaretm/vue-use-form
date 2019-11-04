@@ -5,13 +5,12 @@ export interface FormController {
   _valueRecords: Record<string, any>;
 }
 
-interface FormOptions {
-  onSubmit: Function;
-}
+interface FormOptions {}
 
-type FlagName = 'valid' | 'invalid' | 'validated' | 'dirty' | 'pristine' | 'pending' | 'touched' | 'untouched';
+type CoreFlag = 'valid' | 'invalid' | 'validated' | 'dirty' | 'pristine' | 'pending' | 'touched' | 'untouched';
+type Flag = CoreFlag | 'passed' | 'failed';
 
-const mergeStrategies: Record<FlagName, 'every' | 'some'> = {
+const mergeStrategies: Record<CoreFlag, 'every' | 'some'> = {
   valid: 'every',
   invalid: 'some',
   dirty: 'some',
@@ -23,18 +22,28 @@ const mergeStrategies: Record<FlagName, 'every' | 'some'> = {
 };
 
 function computeFlags(fields: Ref<any[]>) {
-  const flags: FlagName[] = Object.keys(mergeStrategies) as FlagName[];
+  const flags: CoreFlag[] = Object.keys(mergeStrategies) as CoreFlag[];
 
-  return flags.reduce(
-    (acc, flag: FlagName) => {
+  const computedFlags = flags.reduce(
+    (acc, flag: CoreFlag) => {
       acc[flag] = computed(() => {
         return fields.value[mergeStrategies[flag]](field => field[flag]);
       });
 
       return acc;
     },
-    {} as Record<FlagName, Ref<boolean>>
+    {} as Record<Flag, Ref<boolean>>
   );
+
+  computedFlags.passed = computed(() => {
+    return computedFlags.valid.value && computedFlags.validated.value;
+  });
+
+  computedFlags.failed = computed(() => {
+    return computedFlags.invalid.value && computedFlags.validated.value;
+  });
+
+  return computedFlags;
 }
 
 interface FormComposite {
@@ -82,7 +91,7 @@ export function useForm(opts?: FormOptions): FormComposite {
     reset,
     handleSubmit: (fn: Function) => {
       return validate().then(result => {
-        if (opts && opts.onSubmit && result) {
+        if (result && typeof fn === 'function') {
           return fn();
         }
       });
