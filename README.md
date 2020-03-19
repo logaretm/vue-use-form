@@ -1,5 +1,11 @@
 # vue-use-form
 
+**⚠ Deprecated. ⚠**
+
+This project will be continued in the future releases of vee-validate starting with `vee-validate@4` which will come with Vue.js 3 support.
+
+---
+
 This is a [Vue composition API](https://github.com/vuejs/composition-api) function that allows you to do form validation, powered by vee-validate.
 
 ## Install
